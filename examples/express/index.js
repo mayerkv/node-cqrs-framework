@@ -1,20 +1,26 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const {CommandHandlersRegistry} = require('./utils/commandHandlersRegistry');
+
+const {InMemoryUserRepository} = require('./infrastructure/inMemoryUserRepository');
 const {CreateUserCommand} = require('./command/createUserCommand');
 const {CreateUserCommandHandler} = require('./command/createUserCommandHandler');
-const {InMemoryUserRepository} = require('./infrastructure/inMemoryUserRepository');
-const {QueryHandlersRegistry} = require('./utils/queryHandlersRegistry');
 const {GetUserQuery} = require('./query/getUserQuery');
 const {GetUserQueryHandler} = require('./query/getUserQueryHandler');
 const {UserController} = require('./controller/userController');
-const {CommandBusFactory} = require('./utils/commandBusFactory');
-const {QueryBusFactory} = require('./utils/queryBusFactory');
 const {UserCreated} = require('./domainevents/userCreated');
 const {UserCreatedHandler} = require('./domainevents/userCreatedHandler');
-const {DomainEventBusMapImpl} = require('../../src/domainevent/domainEventBusMapImpl');
+
+const {
+  CommandBusFactory,
+  CommandHandlersRegistry,
+  DomainEventBusMapImpl,
+  DomainEventDispatcher,
+  QueryBusFactory,
+  QueryHandlersRegistry
+} = require('../../src');
 
 const userRepository = new InMemoryUserRepository();
+
 const commandHandlersRegistry = CommandHandlersRegistry
   .builder()
   .register(CreateUserCommand, new CreateUserCommandHandler(userRepository))
@@ -23,14 +29,27 @@ const queryHandlersRegistry = QueryHandlersRegistry
   .builder()
   .register(GetUserQuery, new GetUserQueryHandler(userRepository))
   .build();
+
 const domainEventBus = DomainEventBusMapImpl
   .builder()
   .register(UserCreated, new UserCreatedHandler())
   .build();
-const commandBusFactory = new CommandBusFactory(domainEventBus, commandHandlersRegistry);
-const queryBusFactory = new QueryBusFactory(queryHandlersRegistry);
-const commandBus = commandBusFactory.simpleBus();
-const queryBus = queryBusFactory.simpleBus();
+
+const commandBusFactory = CommandBusFactory
+  .builder()
+  .registry(commandHandlersRegistry)
+  .middleware(new DomainEventDispatcher(domainEventBus))
+  .build();
+
+const queryBusFactory = QueryBusFactory
+  .builder()
+  .registry(queryHandlersRegistry)
+  .middleware()
+  .build();
+
+const commandBus = commandBusFactory.create();
+const queryBus = queryBusFactory.create();
+
 const userController = new UserController(commandBus, queryBus);
 
 const port = 3000;
