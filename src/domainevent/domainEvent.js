@@ -2,17 +2,22 @@
  * @interface
  */
 class DomainEvent {
-  constructor() {
+  date = new Date();
+  context = null;
+
+  constructor(context = null) {
     if (new.target === this) {
       throw new Error('must be implemented');
     }
+
+    this.context = context;
   }
 
   /**
    * @return {Date}
    */
   occurredOn() {
-    throw new Error('must be implemented');
+    return this.date;
   }
 }
 
