@@ -11,6 +11,12 @@ class Command {
 
     this.context = context;
   }
+
+  withContext(context) {
+    this.context = context;
+
+    return this;
+  }
 }
 
 module.exports = {Command};

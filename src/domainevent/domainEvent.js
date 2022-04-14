@@ -19,6 +19,12 @@ class DomainEvent {
   occurredOn() {
     return this.date;
   }
+
+  withContext(context) {
+    this.context = context;
+
+    return this;
+  }
 }
 
 module.exports = {DomainEvent};
