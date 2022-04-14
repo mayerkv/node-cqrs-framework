@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const {CommandHandlersRegistry} = require('./utils/commandHandlersRegistry');
 const {CreateUserCommand} = require('./command/createUserCommand');
 const {CreateUserCommandHandler} = require('./command/createUserCommandHandler');
@@ -9,7 +10,6 @@ const {GetUserQueryHandler} = require('./query/getUserQueryHandler');
 const {UserController} = require('./controller/userController');
 const {CommandBusFactory} = require('./utils/commandBusFactory');
 const {QueryBusFactory} = require('./utils/queryBusFactory');
-const bodyParser = require('body-parser');
 const {UserCreated} = require('./domainevents/userCreated');
 const {UserCreatedHandler} = require('./domainevents/userCreatedHandler');
 const {DomainEventBusMapImpl} = require('../../src/domainevent/domainEventBusMapImpl');
